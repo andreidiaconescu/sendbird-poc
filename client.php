@@ -47,6 +47,9 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
             .then(function () {
                 return sendMessageToGroupChannel(userIdsForGroupChannel, 'test message '+(new Date()).toISOString());
             })
+            .then(function () {
+                return listMessagesOfGroupChannel(userIdsForGroupChannel);
+            })
         ;
 
     });
@@ -134,6 +137,7 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
         poc_output('+++ Trying to send message to a group channel, composed of users: ' + userIds.join(','));
 
         if (!currentGroupChannel) {
+            poc_output('currentGroupChannel: ' + JSON.stringify(currentGroupChannel));
             deferredSendMessageToGroupChannel.reject('Cannot send message, because group channel not initialised, currentGroupChannel');
         } else {
             currentGroupChannel.sendUserMessage(messageToSendToGroupChannel, 'some data for msg', function (message, error) {
@@ -147,7 +151,31 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
                 }
             });
         }
-        return deferredInitGroupChannel.promise;
+        return deferredSendMessageToGroupChannel.promise;
+    }
+
+    function listMessagesOfGroupChannel(userIds) {
+        var deferredListMessagesOfGroupChannel = Q.defer();
+        poc_output('+++ Trying to list messages of a group channel, composed of users: ' + userIds.join(','));
+
+        if (!currentGroupChannel) {
+            poc_output('currentGroupChannel: ' + JSON.stringify(currentGroupChannel));
+            deferredListMessagesOfGroupChannel.reject('Cannot list messages, because group channel not initialised, currentGroupChannel');
+        } else {
+            var messageListQuery = currentGroupChannel.createPreviousMessageListQuery();
+
+            messageListQuery.load(200, true, function(messageList, error) {
+                poc_output('messageList: ' + JSON.stringify(messageList));
+                poc_output('error: ' + JSON.stringify(error));
+
+                if (!error) {
+                    deferredListMessagesOfGroupChannel.resolve(messageList);
+                } else {
+                    deferredListMessagesOfGroupChannel.reject(error);
+                }
+            });
+        }
+        return deferredListMessagesOfGroupChannel.promise;
     }
 
 </script>
