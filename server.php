@@ -6,10 +6,14 @@ $task = isset($_GET['task']) ? $_GET['task'] : null;
 
 switch ($task) {
     case 'createSendbirdAccount':
+    // group channels
     case 'createSendbirdGroupChannel':
     case 'listSendbirdGroupChannels':
     case 'sendSendbirdMessageToGroupChannel':
-    case 'listSendbirdMessagesOfGroupChannel': {
+    case 'listSendbirdMessagesOfGroupChannel':
+    // open channels
+    case 'createSendbirdOpenChannel':
+    {
         $task($sendbirdApiToken);
         break;
     }
@@ -201,6 +205,46 @@ function listSendbirdMessagesOfGroupChannel($sendbirdApiToken)
     echo '</pre>';
 }
 
+
+
+/**
+ * Example url to call this function (you can use localhost)
+ * http://sendbird-poc.me/server.php?task=createSendbirdOpenChannel&name=upcall_open_channel_1000&cover_url=upcall_open_channel_1000_cover_url&data=upcall_open_channel_1000_data&channel_url=upcall_open_channel_1000_channel_url
+ */
+function createSendbirdOpenChannel($sendbirdApiToken)
+{
+    echo '<br>Executing task createSendbirdOpenChannel';
+
+    $name = $_GET['name'];
+    $coverUrl = $_GET['cover_url'];
+    $channelUrl = $_GET['channel_url'];
+    $data = $_GET['data'];
+
+    $sendbirdParams = [
+        'name'          => $name,
+        'cover_url'     => $coverUrl,
+        'channel_url'   => $channelUrl,
+        'data'          => $data
+    ];
+
+
+    $sendbirdUrl = 'https://api.sendbird.com/v3/open_channels';
+
+    $sendBirdResponse = curlPost(
+        $sendbirdUrl,
+        json_encode($sendbirdParams),
+        [
+            'Content-Type: application/json, charset=utf8',
+            'Api-Token: ' . $sendbirdApiToken
+        ],
+        true
+    );
+
+    echo '<br>';
+    echo '$sendBirdResponse: <pre>';
+    var_dump($sendBirdResponse);
+    echo '</pre>';
+}
 
 function curlPost($url, $stringPostParams, array $extraHeaders = [], $customPost = false)
 {
