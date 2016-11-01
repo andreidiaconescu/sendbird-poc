@@ -6,11 +6,15 @@ $task = isset($_GET['task']) ? $_GET['task'] : null;
 
 switch ($task) {
     case 'createSendbirdAccount':
+
     // group channels
     case 'createSendbirdGroupChannel':
     case 'listSendbirdGroupChannels':
     case 'sendSendbirdMessageToGroupChannel':
     case 'listSendbirdMessagesOfGroupChannel':
+    case 'inviteUserToGroupChannel':
+    case 'listMembersOfGroupChannel':
+
     // open channels
     case 'createSendbirdOpenChannel':
     {
@@ -71,17 +75,18 @@ function createSendbirdGroupChannel($sendbirdApiToken)
     $name = $_GET['name'];
     $coverUrl = $_GET['cover_url'];
     $data = $_GET['data'];
-    $userIds = $_GET['user_ids'];
+    $userIds = isset($_GET['user_ids']) ? $_GET['user_ids'] : null;
     $isDistinct = $_GET['is_distinct'];
 
     $sendbirdParams = [
         'name'        => $name,
         'cover_url'   => $coverUrl,
         'data'        => $data,
-        'user_ids'    => explode(',', $userIds),
         'is_distinct' => $isDistinct,
     ];
-
+    if ($userIds) {
+        $sendbirdParams['user_ids'] = explode(',', $userIds);
+    }
 
     $sendbirdUrl = 'https://api.sendbird.com/v3/group_channels';
 
@@ -135,7 +140,7 @@ function listSendbirdGroupChannels($sendbirdApiToken)
 
 /**
  * Example url to call this function (you can use localhost)
- * http://sendbird-poc.me/server.php?task=sendSendbirdMessageToGroupChannel&channelUrlParticle=sendbird_group_channel_21658750_4d7704df928c6c71bed0dcd54c248de88a76dbe5
+ * http://sendbird-poc.me/server.php?task=sendSendbirdMessageToGroupChannel&channelUrlParticle=sendbird_group_channel_21658750_5e0c1400cf1795e38be8abfaefba21975a28fd20
  */
 function sendSendbirdMessageToGroupChannel($sendbirdApiToken)
 {
@@ -145,7 +150,7 @@ function sendSendbirdMessageToGroupChannel($sendbirdApiToken)
 
     $sendbirdParams = [
         'message_type' => 'MESG',
-        'user_id'      => 'upcall_usr_1000',
+        'user_id'      => 'upcall_usr_2000',
         'message'      => 'test message from server ' . date('c', time()),
         'data'         => 'some data',
         'mark_as_read' => 'true'
@@ -190,6 +195,73 @@ function listSendbirdMessagesOfGroupChannel($sendbirdApiToken)
 
     $urlQueryString = http_build_query($sendbirdParams);
     $sendbirdUrl = 'https://api.sendbird.com/v3/group_channels/' . $channelUrlParticle . '/messages?'.$urlQueryString;
+
+    $sendBirdResponse = curlGet(
+        $sendbirdUrl,
+        [
+            'Content-Type: application/json, charset=utf8',
+            'Api-Token: ' . $sendbirdApiToken
+        ]
+    );
+
+    echo '<br>';
+    echo '$sendBirdResponse: <pre>';
+    var_dump($sendBirdResponse);
+    echo '</pre>';
+}
+
+
+/**
+ * Example url to call this function (you can use localhost)
+ * http://sendbird-poc.me/server.php?task=inviteUserToGroupChannel&channel_url=sendbird_group_channel_21658750_5e0c1400cf1795e38be8abfaefba21975a28fd20&user_ids=upcall_usr_1000
+ */
+function inviteUserToGroupChannel($sendbirdApiToken)
+{
+    echo '<br>Executing task inviteUserToGroupChannel';
+
+    $channelUrl = $_GET['channel_url'];
+    $userIds = $_GET['user_ids'];
+
+    $sendbirdParams = [
+        'user_ids'    => explode(',', $userIds)
+    ];
+
+
+    $sendbirdUrl = 'https://api.sendbird.com/v3/group_channels/'.$channelUrl.'/invite';
+
+    $sendBirdResponse = curlPost(
+        $sendbirdUrl,
+        json_encode($sendbirdParams),
+        [
+            'Content-Type: application/json, charset=utf8',
+            'Api-Token: ' . $sendbirdApiToken
+        ],
+        true
+    );
+
+    echo '<br>';
+    echo '$sendBirdResponse: <pre>';
+    var_dump($sendBirdResponse);
+    echo '</pre>';
+}
+
+
+/**
+ * Example url to call this function (you can use localhost)
+ * http://sendbird-poc.me/server.php?task=listMembersOfGroupChannel&channelUrl=sendbird_group_channel_21658750_5e0c1400cf1795e38be8abfaefba21975a28fd20
+ */
+function listMembersOfGroupChannel($sendbirdApiToken)
+{
+    echo '<br>Executing task listSendbirdMessagesOfGroupChannel';
+
+    $channelUrl = $_GET['channelUrl'];
+
+    $sendbirdParams = [
+        'limit' => '100'
+    ];
+
+    $urlQueryString = http_build_query($sendbirdParams);
+    $sendbirdUrl = 'https://api.sendbird.com/v3/group_channels/'.$channelUrl.'/members?'.$urlQueryString;
 
     $sendBirdResponse = curlGet(
         $sendbirdUrl,

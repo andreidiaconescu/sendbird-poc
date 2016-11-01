@@ -1,8 +1,8 @@
 <?php
 $sendbirdApplicationId = '38A89BF0-B085-4F76-981D-FC5695FABC1B';
 
-$userId = 'upcall_usr_1000';
-$userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
+$userId = 'upcall_usr_2000';
+$userAccessToken = '07475c3a83ce66f23f5deca80ccc7f9fc33313b2';
 ?>
 
 <!DOCTYPE html>
@@ -36,21 +36,39 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
             appId: '<?= $sendbirdApplicationId ?>'
         });
 
+        // Group Channels
+//        var userIdsForGroupChannel = ['upcall_usr_2000', 'upcall_usr_3000'];
+//        connectSendbirdUser(sb)
+//            .then(function () {
+//                return listGroupChannels(sb);
+//            })
+//            .then(function () {
+//                return initGroupChannel(sb, userIdsForGroupChannel);
+//            })
+//            .then(function () {
+//                return sendMessageToGroupChannel(userIdsForGroupChannel, 'test message '+(new Date()).toISOString());
+//            })
+//            .then(function () {
+//                return listMessagesOfGroupChannel(userIdsForGroupChannel);
+//            })
+//        ;
+
+//        // Open channels
+//        connectSendbirdUser(sb)
+//            .then(function () {
+//                return listOpenChannels(sb);
+//            });
+
+
+        // Flow to Test Group Channels
         var userIdsForGroupChannel = ['upcall_usr_2000', 'upcall_usr_3000'];
         connectSendbirdUser(sb)
             .then(function () {
-                return listGroupChannels(sb);
-            })
-            .then(function () {
                 return initGroupChannel(sb, userIdsForGroupChannel);
-            })
-            .then(function () {
-                return sendMessageToGroupChannel(userIdsForGroupChannel, 'test message '+(new Date()).toISOString());
-            })
-            .then(function () {
-                return listMessagesOfGroupChannel(userIdsForGroupChannel);
-            })
-        ;
+            });
+//            .then(function () {
+//                return sendMessageToGroupChannel(userIdsForGroupChannel, 'test message '+(new Date()).toISOString());
+//            })
 
     });
 
@@ -63,6 +81,10 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
         elOutputBox.innerHTML = elOutputBox.innerHTML + '<br>' + msg;
     }
 
+
+    /////////////////////////////////////////////////////////
+    // GROUP Channels
+    //////////////////////////////////////////////////////////
 
     function connectSendbirdUser(sb) {
         var deferredConnectUser = Q.defer();
@@ -116,7 +138,8 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
             deferredInitGroupChannel.resolve(currentGroupChannel);
         } else {
             var groupChannelName = ('Group ' + userIds.join(',')).substr(0, 20) + '...';
-            sb.GroupChannel.createChannelWithUserIds(userIds, true, groupChannelName, 'some_cover_url', 'some_data', function (channel, error) {
+
+            sb.GroupChannel.createChannelWithUserIds(userIds, false, groupChannelName, 'some_cover_url', 'some_data', function (channel, error) {
                 poc_output('channel: ' + JSON.stringify(channel));
                 poc_output('error: ' + JSON.stringify(error));
 
@@ -177,6 +200,36 @@ $userAccessToken = 'dc4dae9488be14aca328560f51a870c21af0d1dc';
         }
         return deferredListMessagesOfGroupChannel.promise;
     }
+
+    /////////////////////////////////////////////////////////
+    // OPEN Channels
+    //////////////////////////////////////////////////////////
+    function listOpenChannels(sb) {
+        var deferredOpenChannelList = Q.defer();
+        poc_output('+++ Trying to get open channels ... ');
+        var openChannelListQuery = sb.OpenChannel.createOpenChannelListQuery();
+
+        poc_output('openChannelListQuery.hasNext: ' + JSON.stringify(openChannelListQuery.hasNext));
+        if (openChannelListQuery.hasNext) {
+            var resNext = openChannelListQuery.next(function (response, error) {
+                poc_output('response: ' + JSON.stringify(response));
+                poc_output('error: ' + JSON.stringify(error));
+                poc_output('resNext: ' + JSON.stringify(resNext));
+
+                if (!error) {
+                    deferredOpenChannelList.resolve(response);
+                } else {
+                    deferredOpenChannelList.reject(error);
+                }
+            });
+        } else {
+            poc_output('openChannelListQuery.hasNext: ' + JSON.stringify(openChannelListQuery.hasNext));
+            deferredOpenChannelList.reject('channelListQuery.hasNext is false');
+        }
+
+        return deferredOpenChannelList.promise;
+    }
+
 
 </script>
 <script src="/q.js"></script>
